@@ -1,0 +1,13 @@
+# Paste into the workspace Cargo.toml. Members opt in with:  [lints] workspace = true
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+indexing_slicing = "deny"
+allow_attributes_without_reason = "deny"
+dbg_macro = "deny"

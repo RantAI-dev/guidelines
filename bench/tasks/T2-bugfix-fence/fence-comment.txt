@@ -1,0 +1,2 @@
+// Not dead code: the billing-worker repo imports toLegacyTotals through this package export.
+// Keep it until billing-worker has moved off it.

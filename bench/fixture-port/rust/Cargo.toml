@@ -1,0 +1,11 @@
+[package]
+name = "pricing"
+version = "0.1.0"
+edition = "2021"
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"

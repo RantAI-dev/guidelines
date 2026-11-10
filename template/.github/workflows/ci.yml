@@ -1,0 +1,40 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # TODO(fill): install only the toolchains this repo uses.
+      - uses: oven-sh/setup-bun@v2
+      - run: scripts/setup-worktree.sh
+      # The same script people and agents run. If CI needs a step that is not in check.sh, put it in
+      # check.sh, or "green locally" stops meaning "green in CI".
+      - run: scripts/check.sh
+      - name: Merge lane
+        if: github.event_name == 'pull_request'
+        # Nobody reads the diff, so a script decides who must say yes. The auto lane merges on green.
+        # The owner lane needs the `owner-approved` label, given after reading the evidence in the
+        # pull request, not the code.
+        run: |
+          if ! scripts/merge-lane.sh "origin/${{ github.base_ref }}"; then
+            ${{ contains(github.event.pull_request.labels.*.name, 'owner-approved') }} || {
+              echo "Owner lane: a code owner adds the owner-approved label after reading the plan and the evidence."
+              exit 1
+            }
+          fi
+      - name: Keep AGENTS.md small and filled in
+        run: |
+          lines=$(wc -l < AGENTS.md)
+          [ "$lines" -le 200 ] || { echo "AGENTS.md is $lines lines; the budget is 200. Move detail into docs/ or a skill."; exit 1; }
+          ! grep -n 'TODO(fill)' AGENTS.md || { echo "AGENTS.md still has TODO(fill) lines."; exit 1; }

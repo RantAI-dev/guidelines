@@ -1,0 +1,12 @@
+tax=1000;pct=;TEA-001:1:1000 => ok;sub=1000;disc=0;tax=100;total=1100;lines=1000:0
+tax=1000;pct=20;TEA-001:1:2000,CUP-002:1:500 => ok;sub=2500;disc=500;tax=200;total=2200;lines=2000:400,500:100
+tax=0;pct=10;TEA-001:3:333 => ok;sub=999;disc=100;tax=0;total=899;lines=999:100
+tax=825;pct=10;TEA-001:3:333,CUP-002:7:15 => ok;sub=1104;disc=111;tax=82;total=1075;lines=999:100,105:11
+tax=0;pct=12.5;TEA-001:1:333 => ok;sub=333;disc=42;tax=0;total=291;lines=333:42
+tax=0;pct=100;TEA-001:3:333 => ok;sub=999;disc=999;tax=0;total=0;lines=999:999
+tax=500;pct=10;REFUND-1:1:-333 => ok;sub=-333;disc=-33;tax=-15;total=-315;lines=-333:-33
+tax=0;pct=; => err;EmptyCart
+tax=0;pct=120;TEA-001:1:100 => err;InvalidCoupon;120
+tax=0;pct=-1;TEA-001:1:100 => err;InvalidCoupon;-1
+tax=10001;pct=;TEA-001:1:100 => err;InvalidTax;10001
+tax=0;pct=0;FREE-1:0:999 => ok;sub=0;disc=0;tax=0;total=0;lines=0:0

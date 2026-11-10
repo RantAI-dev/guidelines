@@ -1,0 +1,9 @@
+# The owner signs off on what defines "done" and "allowed". Keep in step with .agents/protected-paths.
+/.agents/protected-paths   @TODO-owner
+/scripts/check.sh          @TODO-owner
+/scripts/guard-diff.sh     @TODO-owner
+/scripts/merge-lane.sh     @TODO-owner
+/.agents/risky-paths       @TODO-owner
+/.github/                  @TODO-owner
+/tests/contract/           @TODO-owner
+/AGENTS.md                 @TODO-owner

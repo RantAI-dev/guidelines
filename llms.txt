@@ -1,0 +1,23 @@
+# RantAI engineering guidelines
+
+> How RantAI structures repositories, writes code and runs coding agents. This repository holds the
+> rules (docs/), a project template (template/) and a model bench (bench/). If you are an AI agent
+> asked to "use the RantAI guidelines" in some project, do not read everything here: follow the
+> skill below.
+
+## If you are an agent asked to set a project up
+
+- [The setup skill](https://raw.githubusercontent.com/RantAI-dev/guidelines/main/skill/rantai-guidelines/SKILL.md): the complete procedure. New project, existing project, refactor, language migration.
+- One command does the installing: `curl -fsSL https://raw.githubusercontent.com/RantAI-dev/guidelines/main/install.sh | bash -s -- adopt .` (or `new <dir>`).
+
+## Documents, when you need the reason for a rule
+
+- [README](https://raw.githubusercontent.com/RantAI-dev/guidelines/main/README.md): the map and the short version.
+- [docs/desk-thread.md](https://raw.githubusercontent.com/RantAI-dev/guidelines/main/docs/desk-thread.md): running a project from one thread.
+- [docs/orchestration.md](https://raw.githubusercontent.com/RantAI-dev/guidelines/main/docs/orchestration.md): lead, workers, reviewer, models and routes.
+- [docs/no-read-workflow.md](https://raw.githubusercontent.com/RantAI-dev/guidelines/main/docs/no-read-workflow.md): shipping code nobody reads line by line.
+- [docs/changing-code.md](https://raw.githubusercontent.com/RantAI-dev/guidelines/main/docs/changing-code.md): refactoring an existing repository; porting to another language.
+- [docs/tracker.md](https://raw.githubusercontent.com/RantAI-dev/guidelines/main/docs/tracker.md): the backlog in the repository, and the optional Lark copy.
+- [docs/engineering.md](https://raw.githubusercontent.com/RantAI-dev/guidelines/main/docs/engineering.md): 23 rules for code, tests and comments.
+- [docs/agent-context.md](https://raw.githubusercontent.com/RantAI-dev/guidelines/main/docs/agent-context.md): what each agent harness reads.
+- [docs/lead-budget.md](https://raw.githubusercontent.com/RantAI-dev/guidelines/main/docs/lead-budget.md): spending less of the lead model.

@@ -1,0 +1,76 @@
+---
+name: adopt-guidelines
+description: Bring an existing repository up to the engineering guidelines without stopping feature work - audit it with a script, get the gate green on the code as it is, freeze today's violations with a ratchet, then refactor one area at a time behind characterization tests. Use when asked to refactor a codebase to follow the guidelines, clean up a legacy repository, or prepare a repository for agent workers.
+---
+
+# Adopt the guidelines in an existing repository
+
+The order matters, and each step is one small pull request. Do not combine steps, and do not start
+refactoring before step 6.
+
+## 1. Audit. A script reads; you do not.
+
+```bash
+scripts/audit.sh
+```
+
+It prints every gap and ready-made ratchet lines. Do not open files to find out what state the
+repository is in. Put the audit summary in the tracker.
+
+## 2. Get the gate green on the code as it is
+
+Edit the CONFIGURE block of `scripts/check.sh` until it prints `check: PASS`, without touching
+product code. When a lint rule fails on hundreds of existing lines, do not fix them now and do not
+switch the rule off: make it a ratchet metric in step 3.
+
+## 3. Freeze today's violations
+
+Paste the audit's ratchet lines into `.agents/ratchet.tsv`, then:
+
+```bash
+scripts/ratchet.sh --update     # writes .agents/ratchet.lock
+```
+
+From this commit on, each count can fall and can never rise. New code is held to the rules at once;
+old code is paid down when someone is there anyway.
+
+## 4. Instructions and protection
+
+Fill in `AGENTS.md` by hand: commands, where code lives, the traps. List this repository's contract
+tests, applied migrations and lint configs in `.agents/protected-paths`. Turn on the hook
+(`scripts/setup-worktree.sh`) and CI.
+
+## 5. Choose what to refactor, and what to leave
+
+Refactor an area only if a feature is planned there soon or bugs keep coming from it. Write the
+list in the tracker and get the owner's yes. Everything else stays behind the ratchet.
+
+## 6. Lock behaviour before you move code
+
+For each area on the list, write characterization tests on its public surface: what it returns
+today for real inputs, including behaviour that looks wrong. Commit them and add them to
+`.agents/protected-paths`. They are the acceptance tests for every slice that follows.
+
+## 7. One kind of change per slice
+
+| Kind of slice | What makes it safe |
+|---|---|
+| Move or rename only | No line of logic changes. Tests are not edited. `git diff -M --stat` shows renames. |
+| Pull shared types into the contracts folder | Types only. Callers change their imports and nothing else. |
+| Enforce one boundary rule | Add the rule to the boundary check first, as a ratchet metric; then drive it to zero. |
+| Typed errors in one module | The characterization tests pin the error cases before the change. |
+| Fix behaviour | Never inside a refactor slice. Its own pull request, failing test first. |
+
+Slices in different directories can go to workers in parallel: load the `orchestrate` skill. The
+scope regex of each brief is that slice's directory.
+
+## 8. Tighten
+
+At each merge the lead runs `scripts/ratchet.sh --update`. When a metric reaches zero, turn it into
+a lint rule or a test and delete its line.
+
+## Stop and ask the owner when
+
+- behaviour is not deterministic enough to characterize (time, randomness, a live service);
+- a refactor needs a change to something another team consumes;
+- a characterization test shows behaviour that is plainly a production bug.

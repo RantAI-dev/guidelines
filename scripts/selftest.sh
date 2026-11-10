@@ -121,6 +121,10 @@ HOME="$fakehome" RANTAI_GUIDELINES_HOME="$fakehome/.rantai/guidelines" "$here/in
 ok=1; for d in .agents/skills .claude/skills .gemini/config/skills; do [ -f "$fakehome/$d/rantai-guidelines/SKILL.md" ] || ok=0; done
 [ "$ok" = 1 ] && [ -x "$fakehome/.rantai/guidelines/install.sh" ] && ok "install.sh skill: installs for three harnesses with a local copy" || bad "install.sh skill"
 head -4 "$here/skill/rantai-guidelines/SKILL.md" | grep -q '^name: rantai-guidelines' || bad "global skill frontmatter"
+# The same installer the way the public one-liner runs it: piped into bash, on a machine with no copy yet.
+piped="$work/piped"; mkdir -p "$work/phome"
+(cd "$work" && HOME="$work/phome" RANTAI_GUIDELINES_REPO="$here" RANTAI_GUIDELINES_HOME="$work/phome/.rantai/guidelines" bash -s -- new "$piped" < "$here/install.sh" >/dev/null 2>&1) \
+  && [ -x "$piped/scripts/check.sh" ] && ok "install.sh piped into bash on a first run" || bad "install.sh piped into bash on a first run"
 
 # 5. Every bench task: the unsolved fixture fails hidden tests, the reference passes them all.
 export BENCH_RUNS="$work/runs"

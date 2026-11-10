@@ -25,10 +25,11 @@ fetch() {  # make sure a local copy exists; refresh it when asked
   if [ ! -d "$COPY/.git" ]; then
     mkdir -p "$(dirname "$COPY")"
     git clone --quiet --depth 1 "${src:-$REPO}" "$COPY" 2>/dev/null || git clone --quiet --depth 1 "$REPO" "$COPY"
-    [ -n "$src" ] && git -C "$COPY" remote set-url origin "$REPO"
+    if [ -n "$src" ]; then git -C "$COPY" remote set-url origin "$REPO"; fi
   elif [ "${1:-}" = refresh ]; then
     git -C "$COPY" pull --quiet --ff-only 2>/dev/null || echo "guidelines: could not refresh $COPY (offline?). Using the copy that is there." >&2
   fi
+  [ -x "$COPY/scripts/new-project.sh" ] || { echo "guidelines: $COPY is not a usable copy. Delete it and run again." >&2; exit 1; }
 }
 [ -n "$src" ] || { fetch refresh; src="$COPY"; }
 

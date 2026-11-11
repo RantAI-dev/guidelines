@@ -31,8 +31,14 @@ Paste the audit's ratchet lines into `.agents/ratchet.tsv`, then:
 scripts/ratchet.sh --update     # writes .agents/ratchet.lock
 ```
 
-From this commit on, each count can fall and can never rise. New code is held to the rules at once;
-old code is paid down when someone is there anyway.
+Files that are already too long get the same treatment, one by one:
+
+```bash
+scripts/file-size.sh --update   # writes .agents/size-baseline.tsv
+```
+
+From this commit on, each count and each oversized file can shrink and can never grow. New code is
+held to the rules at once; old code is paid down when someone is there anyway.
 
 ## 4. Instructions and protection
 

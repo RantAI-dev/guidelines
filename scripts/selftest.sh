@@ -59,6 +59,26 @@ done
   git commit -qam clean --no-verify && scripts/guard-diff.sh guard-base --scope '^src/features/pricing/' >/dev/null
 ) && ok "guard-diff passes a clean change" || bad "guard-diff blocked a clean change"
 
+# 4a. File size: a new oversized file fails the gate; a frozen one may shrink but not grow.
+(
+  cd "$proj" && git reset -q --hard guard-base
+  seq 1 700 | sed 's/^/export const v/;s/$/ = 1;/' > src/features/pricing/big.ts
+  ! scripts/file-size.sh >/dev/null 2>&1 || exit 1
+  out="$(scripts/check.sh || true)"; printf '%s' "$out" | grep -q '^check: FAIL.*size'
+) && ok "file-size: a 700-line source file fails the gate" || bad "file-size: oversized file was allowed"
+(
+  cd "$proj" && scripts/file-size.sh --update >/dev/null && scripts/file-size.sh >/dev/null &&
+  echo 'export const more = 1;' >> src/features/pricing/big.ts && ! scripts/file-size.sh >/dev/null 2>&1 &&
+  head -n 650 src/features/pricing/big.ts > t && mv t src/features/pricing/big.ts && scripts/file-size.sh >/dev/null
+) && ok "file-size: a frozen file may shrink and may not grow" || bad "file-size: freeze"
+(cd "$proj" && rm -f src/features/pricing/big.ts .agents/size-baseline.tsv)
+(
+  cd "$proj" && mkdir -p rs && seq 1 900 | sed 's/^/const A/;s/$/: u8 = 1;/' > rs/ok.rs && scripts/file-size.sh >/dev/null &&
+  { seq 1 700 | sed 's/^/const B/;s/$/: u8 = 1;/'; echo '#[cfg(test)]'; seq 1 2000 | sed 's/^/\/\/ t/'; } > rs/with_tests.rs && scripts/file-size.sh >/dev/null &&
+  seq 1 1100 | sed 's/^/const C/;s/$/: u8 = 1;/' > rs/big.rs && ! scripts/file-size.sh >/dev/null 2>&1
+) && ok "file-size: Rust gets 1,000 lines, counted before the inline test module" || bad "file-size: Rust limit"
+(cd "$proj" && rm -rf rs)
+
 # 4b. The ratchet: a count may fall, never rise. The audit runs and prints ratchet lines.
 (
   cd "$proj" && git reset -q --hard guard-base &&

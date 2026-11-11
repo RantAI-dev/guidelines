@@ -74,6 +74,7 @@ Lark base. The repository stays the master of everything. How:
 | `.agents/skills/sweep/` | The weekly clean-up job for a codebase nobody reads day to day. |
 | `scripts/backlog.sh` | Reads the backlog from the main branch one row at a time. The repository is the master of the list of work. |
 | `scripts/tracker-lark.sh`, `.env.example` | Optional. Copies a status to the Lark base, and refuses anything the backlog on main does not already show. |
+| `scripts/file-size.sh` | Fails a source file over 600 lines, or 1,000 for Rust. A file already over that is frozen: it may shrink, never grow. |
 | `scripts/audit.sh` | Reports a repository's gaps against the guidelines, so no model has to read it to find out. |
 | `scripts/ratchet.sh` | Freezes today's violation counts. They may fall and never rise. |
 | `.agents/skills/desk/` | The runbook for the one thread the owner talks to: intake, route, start children, merge by lane, update the tracker. |
@@ -124,6 +125,7 @@ Stack notes and config snippets for TypeScript, Rust and Python are in [`stacks/
 11. The lead costs turns times context, not words. One feature per thread; scripts and scouts read.
 12. Old code changes behind pinned behaviour: a ratchet for refactors, an oracle for ports.
 13. Nobody reads the diff. People read the plan and the evidence; a script says when they must.
+14. No file grows without limit. The gate fails a source file over 600 lines, or 1,000 for Rust.
 
 ## Check this repository
 

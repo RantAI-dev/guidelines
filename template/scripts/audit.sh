@@ -72,7 +72,16 @@ if has '*.py'; then
   metric py-bare-except   "git grep -nE '^[[:space:]]*except[[:space:]]*:' -- '*.py' | wc -l" "Python: bare except"
 fi
 metric todo-no-link "git grep -nE '\\b(TODO|FIXME|HACK|XXX)\\b' -- '*.ts' '*.tsx' '*.rs' '*.py' '*.go' | grep -vcE '#[0-9]+|https?://'" "TODO/FIXME without an issue link"
-metric big-files    "git ls-files '*.ts' '*.tsx' '*.rs' '*.py' '*.go' | grep -Ev '(\\.|_)(test|spec)\\.|\\.d\\.ts\$' | xargs -r wc -l | awk '\$2 != \"total\" && \$1 > 1000' | wc -l" "source files over 1,000 lines"
+if [ -x scripts/file-size.sh ]; then
+  big=$(scripts/file-size.sh --list | grep -c $'\t' || true)
+  frozen=$( [ -f .agents/size-baseline.tsv ] && wc -l < .agents/size-baseline.tsv | tr -d ' ' || echo 0)
+  if [ "$big" -eq 0 ]; then pass "no source file over the size limit"
+  elif [ "$frozen" -ge "$big" ]; then pass "$big oversized file(s), all frozen so they can only shrink"
+  else gap "$big source file(s) over the size limit and not frozen. Run scripts/file-size.sh --update"; fi
+else
+  big=$(count "git ls-files '*.ts' '*.tsx' '*.rs' '*.py' '*.go' | grep -Ev '(\\.|_)(test|spec)\\.|\\.d\\.ts\$' | xargs -r wc -l | awk '\$2 != \"total\" && \$1 > 600' | wc -l")
+  [ "$big" -gt 0 ] && gap "$big source file(s) over 600 lines, and no scripts/file-size.sh to stop them growing" || pass "no source file over 600 lines"
+fi
 echo "INFO  largest source files:"
 git ls-files '*.ts' '*.tsx' '*.rs' '*.py' '*.go' | grep -Ev '(\.|_)(test|spec)\.|\.d\.ts$' | xargs -r wc -l 2>/dev/null | awk '$2 != "total"' | sort -rn | head -5 | sed 's/^/        /'
 
@@ -93,7 +102,8 @@ cat <<'NEXT'
 Close the gaps in this order. Each step is one small pull request.
   1. Install the template (the guidelines repo, scripts/adopt.sh), fill in AGENTS.md by hand.
   2. Make scripts/check.sh pass on the code as it is: configure it, do not fix code yet.
-  3. Paste the ratchet lines, run scripts/ratchet.sh --update, commit. The counts can now only fall.
+  3. Paste the ratchet lines, run scripts/ratchet.sh --update and scripts/file-size.sh --update,
+     commit. The counts and the oversized files can now only shrink.
   4. List the protected paths. Turn on the hook and CI.
   5. Only then refactor, one area at a time, starting where the next feature will land.
 NEXT

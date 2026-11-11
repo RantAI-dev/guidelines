@@ -10,6 +10,8 @@ It is a worker's job, not the lead's. One sweep is one small pull request in the
 
 1. Run `scripts/audit.sh` and `scripts/ratchet.sh`. Pick **one** thing:
    - the ratchet metric that is cheapest to lower, in one directory;
+   - one oversized file from `scripts/file-size.sh --list`: move one cohesive part into its own
+     module, with no change in behaviour;
    - dead code the dead-code tool reports (check `.agents/protected-paths` and public exports
      first: unused inside the repository is not unused);
    - a document under `docs/` that contradicts the code. Fix the document, or delete it.

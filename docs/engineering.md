@@ -66,12 +66,39 @@ third use. But agents duplicate by default: across 623M changed lines, copy-past
 *Enforced by* a dead-code tool (`knip`, `cargo machete`, `vulture`) in the gate and a review
 finding for a second copy of an existing helper. *Evidence:* measured, observational (GitClear).
 
-**9. No hard file-size cap.** Split a file when it has two reasons to change. Warn, do not fail,
-when a new file passes about 500 lines.
-*Evidence:* nothing supports a 150–300 line cap. T3 Code has a median of 103 lines, a 90th
-percentile of 517, 159 files over 1,000 lines and one of 14,720, with no length rule. What has
-been measured is that healthier code costs agents fewer tokens and breaks less often under
-refactoring, and that file size explains part of that.
+**9. A source file stays under 600 lines, or 1,000 for Rust, and the gate enforces it.** Test files
+get twice that. A Rust file is counted up to its inline `#[cfg(test)]` module.
+Generated code, vendored code, migrations and fixtures are not counted. A file that is already over
+the limit is frozen at its current length: it may shrink and may never grow.
+
+An agent adds code where code already is. Each addition looks reasonable, nothing fails, and one
+file reaches 30,000 lines. That has happened to us more than once. A warning does not stop it; a
+failing check does. The check's message says how to split: move one cohesive part into its own
+module, named for what it is. Cutting a file at line 600 into "part 2" is not a split.
+*Enforced by* `scripts/file-size.sh`, inside `scripts/check.sh`. *Evidence:* our own experience for
+the problem; judgement for the number. Nothing supports a tight 150–300 line cap. T3 Code, which
+has no rule, has a median of 103 lines, 159 files over 1,000 and one of 14,720. OpenAI's team lints
+file size. Healthier code has been measured to cost agents fewer tokens and break less often, with
+file size explaining part of that. Set `FILE_MAX_LINES` per project if 600 does not fit.
+
+Rust gets its own number because Rust files really are longer: a type, its impls and its unit tests
+live together. We measured the non-test Rust files of seven projects on 10 November 2026, counting
+lines before the inline test module:
+
+| Project | Files | Median | 90th percentile | Over 600 | Over 1,000 | Longest |
+|---|---|---|---|---|---|---|
+| rust-analyzer | 1,404 | 51 | 574 | 8.8% | 4.6% | 6,649 |
+| tokio | 463 | 110 | 603 | 10.2% | 5.8% | 2,736 |
+| ruff | 1,889 | 131 | 681 | 11.5% | 6.5% | 13,800 |
+| ripgrep | 82 | 166 | 790 | 14.6% | 7.3% | 2,194 |
+| uv | 648 | 159 | 922 | 16.8% | 8.5% | 7,725 |
+| bun (ported to Rust by agents) | 4,057 | 198 | 1,210 | 21.4% | 12.4% | 10,702 |
+| deno | 890 | 261 | 1,364 | 24.7% | 14.4% | 9,995 |
+| our rantai-kb | 162 | 201 | 753 | 15.4% | 7.4% | 2,388 |
+
+A 600-line limit would fail one Rust file in ten even in the most carefully kept of these. At 1,000
+it fails about one in twenty there, which is the tail a limit is for. Bun and Deno show where no
+limit leads: one file in eight over 1,000 lines, and several past 10,000.
 
 ## The gate
 

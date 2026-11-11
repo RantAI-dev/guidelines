@@ -1,8 +1,9 @@
 # One regex per line. scripts/guard-diff.sh blocks a worker's diff that touches a match.
 # These are the files that define "done" or "allowed". Changing one is the owner's decision.
 ^\.agents/protected-paths$
-^scripts/(check|guard-diff|ratchet|merge-lane|backlog|tracker-lark)\.sh$
+^scripts/(check|guard-diff|ratchet|merge-lane|backlog|tracker-lark|file-size)\.sh$
 ^\.agents/ratchet\.(tsv|lock)$
+^\.agents/size-(baseline\.tsv|exempt)$
 ^\.agents/risky-paths$
 ^\.github/
 ^\.githooks/

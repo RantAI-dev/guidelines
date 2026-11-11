@@ -43,6 +43,9 @@ TODO(fill): one line per top-level area, and which way dependencies point. For e
 6. **Comments say why, or nothing.** One line for a constraint the code cannot show. If a line looks
    wrong but is right, say why at that line, or the next reader will "fix" it.
 7. **Search before you write.** Look for an existing helper first. A second copy is a review finding.
+   New code goes in a file named for what it does, not at the bottom of the nearest big one. The
+   gate fails a source file over 600 lines (1,000 for Rust), and a file already over that may only
+   shrink.
 8. **No new dependency** without the owner's approval. Say why you need it in the handoff.
 
 ## Traps

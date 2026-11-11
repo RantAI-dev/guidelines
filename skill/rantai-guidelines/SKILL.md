@@ -39,7 +39,8 @@ Work on a branch named `chore/guidelines`. Change no product code in this step.
    `pyproject.toml`). If the repository has no lint configuration, copy the snippet from
    `$G/stacks/<language>/`. Run it until it prints `check: PASS`. In an existing project, a rule
    that fails on old code becomes a ratchet line, not a mass fix: `scripts/audit.sh` prints the
-   lines, paste them into `.agents/ratchet.tsv`, run `scripts/ratchet.sh --update`.
+   lines, paste them into `.agents/ratchet.tsv`, run `scripts/ratchet.sh --update`. Files already
+   over the size limit are frozen the same way: `scripts/file-size.sh --update`.
 2. **`AGENTS.md`.** Replace every `TODO(fill)` with facts you checked: the commands you just ran,
    the top-level areas and which way they depend on each other, the rules the gate enforces. Take
    the two-sentence description from the README. Write "none recorded yet" under Traps. Do not

@@ -28,7 +28,8 @@ the order to close them. On one of our own services it listed 15 gaps in a few s
 that starts red is ignored by everyone.
 
 **3. Freeze, then pay down.** `scripts/ratchet.sh` records today's count of each violation, such
-as a thousand `unwrap` calls. From then on a count may fall and may never rise. New code meets the rule
+as a thousand `unwrap` calls, and `scripts/file-size.sh` records each file that is already too
+long. From then on a count or a file may shrink and may never grow. New code meets the rule
 at once, and nobody has to fix a thousand lines before the first feature ships. When a count
 reaches zero it becomes a lint rule. *Evidence:* judgement. This is how lint baselines and tools
 like `betterer` work; we found no study of it with agents.

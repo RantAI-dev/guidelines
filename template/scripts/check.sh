@@ -70,6 +70,12 @@ for stack in "${STACKS[@]}"; do
   ran+=("$stack")
 done
 
+# File size: a source file over the limit fails; one already over it may only shrink. Always runs.
+if [ -x scripts/file-size.sh ]; then
+  if scripts/file-size.sh >"$log" 2>&1; then echo "check: size ok"; else cat "$log"; failed+=("size"); fi
+  ran+=("size")
+fi
+
 # The ratchet: counts that may fall but never rise. Skipped in the fast pre-commit mode.
 if [ "$mode" != staged ] && [ -x scripts/ratchet.sh ] && grep -qEv '^[[:space:]]*(#|$)' .agents/ratchet.tsv 2>/dev/null; then
   if scripts/ratchet.sh >"$log" 2>&1; then echo "check: ratchet ok"; else cat "$log"; failed+=("ratchet"); fi

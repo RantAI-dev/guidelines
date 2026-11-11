@@ -32,7 +32,7 @@ specific numbers and several of its named practices are not what the sources it 
 | Draft claim | Verdict | What we found |
 |---|---|---|
 | Fast native linters and checkers | **Keep, and go further** | One gate script, a changed-only mode, and error messages written as fix instructions. |
-| Files of 150–300 lines; over 500 degrades attention and causes "existing code" truncation | **Drop** | No evidence for the cap. T3 Code: median 103 lines, 90th percentile 517, 159 files over 1,000, one of 14,720, and no length rule. The truncation habit came from tools that rewrote whole files; current harnesses edit by search and replace. Split a file when it has two reasons to change. |
+| Files of 150–300 lines; over 500 degrades attention and causes "existing code" truncation | **Change** | No evidence for a cap that tight, and the truncation habit came from tools that rewrote whole files. But no cap at all is worse: T3 Code has no rule and has a file of 14,720 lines, and we have had files of 30,000. We enforce a ceiling by script, 600 lines and 1,000 for Rust, and freeze files already over it so they can only shrink. |
 | Explicit over implicit; no decorators, singletons, monkey-patching | **Keep** | Judgement call. |
 
 ## 4. Context and documentation

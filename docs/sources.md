@@ -54,6 +54,8 @@ the ones that were not are marked.
 | Bun's rewrite in Rust: public coverage of PR #30412 and of talks by its author | May–Jul 2026 | About a million lines written by agents; the existing test suite and adversarial agent review as the gate; regressions after merge. Secondary sources; figures approximate. |
 | T3 Code repository: `.macroscope/approvability.md`, `CONTRIBUTING.md`, `AGENTS.md` | Nov 2026 | What a review bot may approve alone; proof required by kind of change |
 
+| Our own count of Rust file lengths in ripgrep, tokio, uv, ruff, rust-analyzer, deno and bun (shallow clones of each default branch, 10 Nov 2026) and in our Rust repositories | Nov 2026 | The Rust file-size limit. Non-test `.rs` files, lines before the first `#[cfg(test)]`; `tests/`, `benches/`, `examples/`, vendored and generated directories excluded. |
+
 ## Studies
 
 | Source | Date | Finding used |

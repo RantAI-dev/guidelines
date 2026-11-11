@@ -26,6 +26,20 @@ TODO(fill): one line per top-level area, and which way dependencies point. For e
 1. TODO(fill): one line per lint, type or boundary rule that surprises newcomers, with the command
    that reports it.
 
+## Conventions
+
+The same in every RantAI repository. The full list is `docs/conventions.md`; read it before you add
+an endpoint, an error, a log line, a config variable or a table. The ones broken most often:
+
+- Every error response is `{ "error": { "code", "message", "requestId" } }`, built by one function.
+- A `code` is a row of `.agents/error-codes.tsv`. New code: add a row, run
+  `scripts/error-codes.sh --write`. Never rename or remove a row. Its status comes from the table.
+- No internal text in a message: no exception text, SQL or upstream response. Log it instead.
+- JSON fields are `camelCase`; times are `2026-11-11T08:30:00.000Z` in fields ending `At`.
+- A list returns `{ "data": [...], "nextCursor": ... }`, never a bare array.
+- Tests assert on the status and the `code`, not on message text.
+- Commit subject: `type(scope): summary`.
+
 ## Working agreements
 
 1. **Evidence, not claims.** "Green" means you ran `scripts/check.sh` after your last edit and can

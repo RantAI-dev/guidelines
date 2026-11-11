@@ -6,7 +6,7 @@ description: Bring an existing repository up to the engineering guidelines witho
 # Adopt the guidelines in an existing repository
 
 The order matters, and each step is one small pull request. Do not combine steps, and do not start
-refactoring before step 6.
+refactoring before step 7.
 
 ## 1. Audit. A script reads; you do not.
 
@@ -46,18 +46,31 @@ Fill in `AGENTS.md` by hand: commands, where code lives, the traps. List this re
 tests, applied migrations and lint configs in `.agents/protected-paths`. Turn on the hook
 (`scripts/setup-worktree.sh`) and CI.
 
-## 5. Choose what to refactor, and what to leave
+## 5. Conventions: record the differences first
+
+Compare what the API does today with `docs/conventions.md`: the error body, the statuses, field
+casing, lists, timestamps, the request id, log fields, config names. Check by calling it or by
+reading the one error type, not by reading every handler. Then:
+
+- Point an `@emit` line in `.agents/error-codes.tsv` at the contracts folder, add this API's own
+  codes, and run `scripts/error-codes.sh --write`.
+- Fix now what no client can depend on: internal text in messages, a missing `X-Request-Id`, log
+  field names, undocumented config variables.
+- Do not change a response shape, a field name or a status that clients already use. List each one
+  in the last section of `docs/conventions.md` for the owner; it changes at the next API version.
+
+## 6. Choose what to refactor, and what to leave
 
 Refactor an area only if a feature is planned there soon or bugs keep coming from it. Write the
 list in the tracker and get the owner's yes. Everything else stays behind the ratchet.
 
-## 6. Lock behaviour before you move code
+## 7. Lock behaviour before you move code
 
 For each area on the list, write characterization tests on its public surface: what it returns
 today for real inputs, including behaviour that looks wrong. Commit them and add them to
 `.agents/protected-paths`. They are the acceptance tests for every slice that follows.
 
-## 7. One kind of change per slice
+## 8. One kind of change per slice
 
 | Kind of slice | What makes it safe |
 |---|---|
@@ -70,7 +83,7 @@ today for real inputs, including behaviour that looks wrong. Commit them and add
 Slices in different directories can go to workers in parallel: load the `orchestrate` skill. The
 scope regex of each brief is that slice's directory.
 
-## 8. Tighten
+## 9. Tighten
 
 At each merge the lead runs `scripts/ratchet.sh --update`. When a metric reaches zero, turn it into
 a lint rule or a test and delete its line.

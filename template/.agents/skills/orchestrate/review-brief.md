@@ -7,6 +7,8 @@ It claims to implement <plan path, or the plan pasted here>.
 
 Your job: find where the change does not do what the plan says, or breaks a rule in AGENTS.md.
 Go through the plan's behaviour list one sentence at a time and find the code that implements it.
+For a new or changed endpoint, error, log line, config variable or table, check it against
+`docs/conventions.md`; a response that leaks internal error text is a BLOCKER.
 You may run code and write throwaway scripts or tests to confirm a suspicion. Do not commit and do
 not fix anything.
 

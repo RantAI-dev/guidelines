@@ -40,6 +40,13 @@ echo "== 2. The gate"
 if has '.github/workflows/*' '.gitlab-ci.yml'; then
   git grep -qE 'check\.sh' -- '.github/workflows' '.gitlab-ci.yml' 2>/dev/null && pass "CI runs scripts/check.sh" || gap "CI does not call scripts/check.sh, so green locally and green in CI can differ"
 else gap "no CI workflow"; fi
+[ -f docs/conventions.md ] && [ -f .agents/error-codes.tsv ] && [ -x scripts/error-codes.sh ] \
+  && pass "conventions and the error-code registry" \
+  || gap "no docs/conventions.md or .agents/error-codes.tsv: error bodies, statuses and codes are whatever each handler chose"
+if [ -f .agents/error-codes.tsv ]; then
+  grep -q '^@emit ' .agents/error-codes.tsv && pass "error codes are generated into the source" \
+    || gap "no @emit line in .agents/error-codes.tsv: the code cannot be checked against the registry (skip if this repository returns no errors over a network)"
+fi
 has CODEOWNERS .github/CODEOWNERS docs/CODEOWNERS && pass "CODEOWNERS" || gap "no CODEOWNERS for the protected paths"
 
 echo "== 3. Tests"

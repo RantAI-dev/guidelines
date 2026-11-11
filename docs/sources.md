@@ -56,6 +56,21 @@ the ones that were not are marked.
 
 | Our own count of Rust file lengths in ripgrep, tokio, uv, ruff, rust-analyzer, deno and bun (shallow clones of each default branch, 10 Nov 2026) and in our Rust repositories | Nov 2026 | The Rust file-size limit. Non-test `.rs` files, lines before the first `#[cfg(test)]`; `tests/`, `benches/`, `examples/`, vendored and generated directories excluded. |
 
+## Added for the conventions
+
+Fetched on 11 November 2026. Every quote in conventions.md was checked against the page or RFC text.
+
+| Source | Date | Used for |
+|---|---|---|
+| RFC 9110, HTTP Semantics (`rfc-editor.org/rfc/rfc9110`) | Jun 2022 | What 400, 401, 403, 404, 408, 409, 422, 502, 503 and 504 mean; 404 to hide a forbidden resource; `WWW-Authenticate` with 401 |
+| RFC 6585 | Apr 2012 | 429 and `Retry-After` |
+| RFC 9457, Problem Details for HTTP APIs | Jul 2023 | The format we considered and did not take; `about:blank`; the `errors` example with JSON Pointers; do not parse `detail`; no stack dumps |
+| Google API Improvement Proposals 193 (errors) and 158 (pagination), `google.aip.dev` | living | Stable machine-readable reasons; brief, actionable messages in English; pagination from the outset, opaque tokens, coercing an oversized page |
+| Stripe API reference, errors (`docs.stripe.com/api/errors`) | living | An error object with `type`, `code`, `message`, `param`; 400 for an unacceptable request |
+| Zalando RESTful API Guidelines | living | Rules 118 (snake_case, which we did not take), 160 (cursor pagination), 169 (date and time formats), 173 (money as a decimal amount, which we did not take), 177 (no stack traces). The page was read only as far as its first 100,000 characters. |
+| Conventional Commits 1.0.0 (`conventionalcommits.org`) | living | Subject structure; `feat` and `fix` are defined, other types allowed |
+| Our own survey of four services with an HTTP API, read locally | 11 Nov 2026 | Everything tagged "survey" in conventions.md. Counts were made by a search agent and spot-checked, not recounted by hand. |
+
 ## Studies
 
 | Source | Date | Finding used |

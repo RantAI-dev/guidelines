@@ -30,13 +30,13 @@ proj="$work/proj"; mkdir -p "$proj"; cp -r "$here/bench/fixture-ts/." "$proj/"
   git init -q -b main && git config user.name selftest && git config user.email selftest@example.invalid &&
   bun install --silent >/dev/null 2>&1 && git add -A && git commit -qm base &&
   "$here/scripts/new-project.sh" "$proj" >/dev/null &&
-  git add -A && git commit -qm template >/dev/null 2>&1 && git tag base
+  git add -A && git commit -qm "chore: add the template" >/dev/null 2>&1 && git tag base
 ) || bad "template install"
 (cd "$proj" && scripts/check.sh | grep -q '^check: PASS') && ok "template: check.sh passes" || bad "template: check.sh"
 [ "$(readlink "$proj/.claude/skills")" = "../.agents/skills" ] && ok "template: .claude/skills symlink" || bad "template: skills symlink"
 
 # 3. The pre-commit hook rejects a badly formatted file.
-(cd "$proj" && printf 'export const   x = 1\n' > src/features/pricing/bad.ts && git add -A && ! git commit -qm bad >/dev/null 2>&1) \
+(cd "$proj" && printf 'export const   x = 1\n' > src/features/pricing/bad.ts && git add -A && ! git commit -qm "chore: bad format" >/dev/null 2>&1) \
   && ok "pre-commit hook blocks" || bad "pre-commit hook let a bad commit through"
 (cd "$proj" && git reset -q && rm -f src/features/pricing/bad.ts)
 
@@ -78,6 +78,58 @@ done
   seq 1 1100 | sed 's/^/const C/;s/$/: u8 = 1;/' > rs/big.rs && ! scripts/file-size.sh >/dev/null 2>&1
 ) && ok "file-size: Rust gets 1,000 lines, counted before the inline test module" || bad "file-size: Rust limit"
 (cd "$proj" && rm -rf rs)
+
+# 4a2. Error codes: one registry, checked, with the source generated from it.
+ec() { (cd "$proj" && scripts/error-codes.sh "$@" 2>&1); }
+reg="$proj/.agents/error-codes.tsv"
+(cd "$proj" && git reset -q --hard guard-base)
+out="$(ec)"; printf '%s' "$out" | grep -q 'ok (13 codes' && ok "error-codes: the template registry is valid" || bad "error-codes: template registry: $out"
+out="$(cd "$proj" && scripts/check.sh 2>&1)"; printf '%s' "$out" | grep -q '^check: errors ok' && ok "error-codes: runs inside check.sh" || bad "error-codes: not in check.sh"
+try_row() {  # description, row to append, text the failure must contain
+  cp "$reg" "$work/reg.bak"; printf '%b\n' "$2" >> "$reg"; local out; out="$(ec)"; local code=$?; cp "$work/reg.bak" "$reg"
+  [ "$code" -ne 0 ] && printf '%s' "$out" | grep -qF "$3" && ok "error-codes: rejects $1" || bad "error-codes: accepted $1: $out"
+}
+try_row "a duplicate code"            'not_found\t404\tNot here.'              'listed twice'
+try_row "a status outside the table"  'bad_thing\t422\tThat is wrong.'         'status 422 is not in the standard table'
+try_row "a code that is not snake_case" 'BadThing\t400\tThat is wrong.'        'lower snake_case'
+try_row "a message that is not a sentence" 'bad_thing\t400\tthat is wrong'     'the message is a sentence'
+cp "$reg" "$work/reg.bak"; printf '@allow-status 422\nbad_thing\t422\tThat is wrong.\n' >> "$reg"
+ec >/dev/null && ok "error-codes: @allow-status admits a recorded exception" || bad "error-codes: @allow-status"
+cp "$work/reg.bak" "$reg"; sed -i 's/^conflict\t409/conflict\t400/' "$reg"
+out="$(ec)"; printf '%s' "$out" | grep -q 'the shared code conflict (409) is missing or changed' && ok "error-codes: a shared code cannot change" || bad "error-codes: shared code changed: $out"
+cp "$work/reg.bak" "$reg"
+printf '@emit ts src/contracts/error-codes.ts\n@emit rust gen/error_codes.rs\n@emit python gen/error_codes.py\nemail_taken\t409\tThis email is already registered.\n' >> "$reg"
+out="$(ec)"; printf '%s' "$out" | grep -q 'src/contracts/error-codes.ts is out of date' && ok "error-codes: a missing generated file fails" || bad "error-codes: missing generated file passed"
+ec --write >/dev/null; out="$(ec)"
+printf '%s' "$out" | grep -q 'ok (14 codes, 3 generated' && grep -q 'email_taken: { status: 409' "$proj/src/contracts/error-codes.ts" \
+  && grep -q 'Self::EmailTaken => "email_taken"' "$proj/gen/error_codes.rs" && grep -q '"email_taken": (409' "$proj/gen/error_codes.py" \
+  && ok "error-codes: --write generates TypeScript, Rust and Python" || bad "error-codes: --write: $out"
+cp "$here/stacks/typescript/api-error.ts" "$proj/src/contracts/api-error.ts"
+(cd "$proj" && bun run typecheck >/dev/null 2>&1 && bunx biome check src/contracts >/dev/null 2>&1) \
+  && ok "error-codes: generated TypeScript and the api-error helper pass tsc and the formatter" || bad "error-codes: generated TypeScript or stacks/typescript/api-error.ts fails tsc or biome"
+(cd "$proj" && git add -A && git commit -qm "feat: add email_taken" --no-verify && git tag codes-base)
+printf 'plan_expired\t403\tThe plan has expired.\n' >> "$reg"
+out="$(ec)"; printf '%s' "$out" | grep -q 'out of date' && ok "error-codes: a new row without --write fails" || bad "error-codes: stale generated file passed"
+ec --write >/dev/null
+sed -i '/^email_taken\t/d' "$reg"; ec --write >/dev/null
+out="$(cd "$proj" && CHECK_BASE=codes-base scripts/error-codes.sh 2>&1)"
+printf '%s' "$out" | grep -q 'email_taken: was 409 on the main branch' && ok "error-codes: a published code cannot be removed" || bad "error-codes: removal passed: $out"
+printf 'email_taken\t409\tThis email is already registered.\tdeprecated\n' >> "$reg"; ec --write >/dev/null
+(cd "$proj" && CHECK_BASE=codes-base scripts/error-codes.sh >/dev/null) && ok "error-codes: a published code can be marked deprecated" || bad "error-codes: deprecated row rejected"
+(cd "$proj" && git reset -q --hard guard-base && git tag -d codes-base >/dev/null && rm -rf gen src/contracts/error-codes.ts src/contracts/api-error.ts)
+while read -r code status _; do
+  grep -E "\| $status \| \`$code\`" "$here/template/docs/conventions.md" >/dev/null || bad "conventions.md has no row for $code with status $status"
+done < <(grep -Ev '^(#|@|$)' "$here/template/.agents/error-codes.tsv" | cut -f1,2 | tr '\t' ' ')
+ok "error-codes: every shared code is in the status table of the rule sheet"
+
+# 4a3. The commit-msg hook: one subject form in every repository.
+msg() { printf '%s\n' "$1" > "$work/msg"; "$here/template/.githooks/commit-msg" "$work/msg" 2>/dev/null; }
+msg "fix(billing): round tax per line" && msg "feat!: drop the v1 routes" && msg "Merge branch 't3/abc' into main" && msg "chore: bump deps" \
+  && ok "commit-msg: accepts type(scope): summary, a breaking mark and merges" || bad "commit-msg rejected a good subject"
+! msg "Fixed stuff" && ! msg "feat: add the thing." && ! msg "feature: add the thing" && ! msg "fix: $(printf 'x%.0s' $(seq 1 80))" \
+  && ok "commit-msg: rejects free text, a full stop, an unknown type and a long subject" || bad "commit-msg accepted a bad subject"
+(cd "$proj" && ! git commit -q --allow-empty -m "Did some things" >/dev/null 2>&1 && git commit -q --allow-empty -m "docs: say why" >/dev/null 2>&1 && git reset -q --hard guard-base) \
+  && ok "commit-msg: the installed hook runs on a real commit" || bad "commit-msg hook is not installed by the template"
 
 # 4b. The ratchet: a count may fall, never rise. The audit runs and prints ratchet lines.
 (

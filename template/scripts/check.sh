@@ -76,6 +76,12 @@ if [ -x scripts/file-size.sh ]; then
   ran+=("size")
 fi
 
+# Error codes: the registry is valid, published codes are unchanged, generated files are current.
+if [ -x scripts/error-codes.sh ] && [ -f .agents/error-codes.tsv ]; then
+  if scripts/error-codes.sh >"$log" 2>&1; then echo "check: errors ok"; else cat "$log"; failed+=("errors"); fi
+  ran+=("errors")
+fi
+
 # The ratchet: counts that may fall but never rise. Skipped in the fast pre-commit mode.
 if [ "$mode" != staged ] && [ -x scripts/ratchet.sh ] && grep -qEv '^[[:space:]]*(#|$)' .agents/ratchet.tsv 2>/dev/null; then
   if scripts/ratchet.sh >"$log" 2>&1; then echo "check: ratchet ok"; else cat "$log"; failed+=("ratchet"); fi

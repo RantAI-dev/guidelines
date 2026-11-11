@@ -49,9 +49,14 @@ Work on a branch named `chore/guidelines`. Change no product code in this step.
    already applied, lint and type-check configuration.
 4. **`.agents/risky-paths`.** Propose lines for the directories that exist: auth, payments,
    tenancy, migrations, deploy. An empty file means no change ever needs a person.
-5. **`CODEOWNERS`.** Replace `@TODO-owner`.
-6. **Hooks.** Run `scripts/setup-worktree.sh`.
-7. Commit. Do not push to the main branch. Open a pull request only if asked.
+5. **Error codes.** If the repository serves an API, add an `@emit <ts|rust|python> <path>` line to
+   `.agents/error-codes.tsv` pointing at its contracts folder, run `scripts/error-codes.sh --write`,
+   and copy the helper from `$G/stacks/<language>/`. New code follows `docs/conventions.md`. In an
+   existing project, do not change what responses look like here; the `adopt-guidelines` skill
+   records the differences for the owner.
+6. **`CODEOWNERS`.** Replace `@TODO-owner`.
+7. **Hooks.** Run `scripts/setup-worktree.sh`. Commit subjects are `type(scope): summary` from now on.
+8. Commit. Do not push to the main branch. Open a pull request only if asked.
 
 Then ask the owner, in one message, for the three decisions that are theirs: the risky-paths list,
 the code owner, and whether the project keeps a `BACKLOG.md` and a Lark copy (small and one-person

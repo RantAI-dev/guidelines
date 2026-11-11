@@ -100,11 +100,14 @@ Stack notes and config snippets for TypeScript, Rust and Python are in [`stacks/
 5. [docs/changing-code.md](docs/changing-code.md) — bringing an existing repository up to the
    guidelines, and moving code to another language.
 6. [docs/engineering.md](docs/engineering.md) — 23 rules for structure, the gate, tests and comments.
-7. [docs/agent-context.md](docs/agent-context.md) — what each harness reads, and where to put things
+7. [docs/conventions.md](docs/conventions.md) — what is the same in every codebase: the error body,
+   statuses, error codes, messages, field names, lists, logs, configuration, commit subjects. The
+   rules themselves are [one page](template/docs/conventions.md) that every project gets.
+8. [docs/agent-context.md](docs/agent-context.md) — what each harness reads, and where to put things
    so all of them see it.
-8. [docs/review-of-draft.md](docs/review-of-draft.md) — the earlier draft guide and orchestration
+9. [docs/review-of-draft.md](docs/review-of-draft.md) — the earlier draft guide and orchestration
    plan, checked claim by claim.
-9. [docs/sources.md](docs/sources.md) — every source, its date and what kind of evidence it is.
+10. [docs/sources.md](docs/sources.md) — every source, its date and what kind of evidence it is.
 
 ## The short version
 
@@ -126,6 +129,8 @@ Stack notes and config snippets for TypeScript, Rust and Python are in [`stacks/
 12. Old code changes behind pinned behaviour: a ratchet for refactors, an oracle for ports.
 13. Nobody reads the diff. People read the plan and the evidence; a script says when they must.
 14. No file grows without limit. The gate fails a source file over 600 lines, or 1,000 for Rust.
+15. Every codebase answers the same way. One error body, one table of statuses, error codes from
+    one registry that a script checks, and one page of conventions copied into every project.
 
 ## Check this repository
 

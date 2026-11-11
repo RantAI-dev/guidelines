@@ -33,6 +33,8 @@ Next, in this order:
   2. scripts/check.sh     edit the CONFIGURE block: delete the stacks you do not have, fix the commands.
   3. .agents/protected-paths   add this repo's contract tests, applied migrations and lint configs.
      .agents/risky-paths       add auth, money, tenancy, migrations, deploy. Empty means nothing needs a person.
+     .agents/error-codes.tsv   if this repo serves an API: add an @emit line, run scripts/error-codes.sh --write.
+                               New endpoints, errors and logs follow docs/conventions.md.
   4. CODEOWNERS           replace @TODO-owner.
   5. Run scripts/check.sh until it prints "check: PASS".
   6. Protect the main branch on the git host: require the ci check, block force pushes.

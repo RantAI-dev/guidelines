@@ -52,7 +52,8 @@ precisely because models get it wrong.
 
 **6. Failure is visible in the signature.** Domain code returns a typed error (`Result<T, E>` in
 Rust, a discriminated union in TypeScript). `throw` and `panic!` are for bugs. A five-line `Result`
-type is enough; this does not need a framework.
+type is enough; this does not need a framework. What the error looks like once it leaves the
+process is fixed for every repository: see [conventions.md](conventions.md).
 *Enforced by* lint: no `throw` in domain code, no `unwrap`/`expect` outside tests. *Evidence:*
 judgement. We found no study that typed errors help agents.
 

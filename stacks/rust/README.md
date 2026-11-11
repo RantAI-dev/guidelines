@@ -24,3 +24,7 @@ agent never sees.
 - **Boundaries by crate.** A pure core crate with no I/O, a ports crate, adapter crates, one
   composition root. Enforce it with a test or a small binary that reads `cargo metadata`, as
   `rantai-kb` does with `check-boundary`.
+- **Errors.** `api_error.rs` builds the one error body from the generated `error_codes.rs`, for
+  axum. Add `@emit rust <path>` to `.agents/error-codes.tsv`, run `scripts/error-codes.sh --write`,
+  and copy the helper beside the result. The generated enum passes `cargo fmt --check` and
+  `clippy::pedantic` as written. Handlers never pass `err.to_string()` as a message: log it.

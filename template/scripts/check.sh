@@ -86,23 +86,25 @@ elif [ "$mode" = staged ]; then
 fi
 
 # Which parts run. In --changed mode this fails closed: a shared or unknown file selects them all.
-present() { local var="$1_paths"; git ls-files | grep -Eq "${!var}"; }
-claims()  { local var="$1_paths"; printf '%s\n' "$2" | grep -Eq "${!var}"; }
+# Not `grep -q`: it exits on the first match, git ls-files then dies of SIGPIPE, and pipefail turns a
+# match into a failure, so on a large repository every part was skipped without a word.
+present() { local var="$1_paths"; git ls-files | grep -E "${!var}" >/dev/null; }
+claims()  { local var="$1_paths"; printf '%s\n' "$2" | grep -E "${!var}" >/dev/null; }
 selected=()
 if [ "$mode" = changed ]; then
   every=0
   while IFS= read -r f; do
     [ -n "$f" ] || continue
-    if printf '%s\n' "$f" | grep -Eq "$ALL_PATHS"; then every=1; break; fi
+    if printf '%s\n' "$f" | grep -E "$ALL_PATHS" >/dev/null; then every=1; break; fi
     hit=0; for part in "${PARTS[@]}"; do claims "$part" "$f" && hit=1; done
     [ "$hit" -eq 1 ] && continue
-    printf '%s\n' "$f" | grep -Eq "$NO_PATHS" && continue
+    printf '%s\n' "$f" | grep -E "$NO_PATHS" >/dev/null && continue
     echo "check: no part claims $f, so every part runs. Add it to a part, ALL_PATHS or NO_PATHS." >&2
     every=1; break
   done <<<"$files"
   for part in "${PARTS[@]}"; do
     if [ "$every" -eq 1 ]; then present "$part" && selected+=("$part")
-    elif printf '%s\n' "$files" | grep -Eq "$(v="${part}_paths"; echo "${!v}")"; then selected+=("$part"); fi
+    elif printf '%s\n' "$files" | grep -E "$(v="${part}_paths"; echo "${!v}")" >/dev/null; then selected+=("$part"); fi
   done
 else
   for part in "${PARTS[@]}"; do

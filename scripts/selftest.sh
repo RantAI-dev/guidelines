@@ -54,6 +54,14 @@ grep -q 'timeout-minutes: 15' "$proj/.github/workflows/ci.yml" && ok "template: 
   out="$(scripts/check.sh --part repo)"; printf '%s' "$out" | grep -q '^check: size ok' && ! printf '%s' "$out" | grep -q '^check: ts' || exit 17
   git checkout -q main && git branch -qD scope-test
 ) && ok "check.sh: scoped plan, docs run nothing, unknown and shared files run every part" || bad "check.sh: part selection (exit $?)"
+
+# 2b. A large repository still selects its parts. `git ls-files | grep -q` dies of SIGPIPE under
+# pipefail once the file list outgrows the pipe buffer, which silently selected no part at all.
+(
+  big="$work/big"; mkdir -p "$big/src" "$big/scripts" && cd "$big" && git init -q -b main &&
+  for i in $(seq 1 20000); do echo x > "src/f$i.ts"; done && git add -A &&
+  cp "$proj/scripts/check.sh" scripts/ && [ "$(scripts/check.sh --plan)" = '["repo","ts"]' ]
+) && ok "check.sh: a 20,000-file repository still selects its parts" || bad "check.sh: part selection in a large repository"
 grep -q 'ci-required' "$proj/.github/workflows/ci.yml" && grep -q 'fromJSON(needs.plan.outputs.parts)' "$proj/.github/workflows/ci.yml" \
   && ok "template: CI has one job per part and one required check" || bad "template: CI part matrix"
 [ "$(readlink "$proj/.claude/skills")" = "../.agents/skills" ] && ok "template: .claude/skills symlink" || bad "template: skills symlink"

@@ -39,6 +39,8 @@ echo "== 2. The gate"
   && pass "a pre-commit hook is configured" || gap "no pre-commit hook"
 if has '.github/workflows/*' '.gitlab-ci.yml'; then
   git grep -qE 'check\.sh' -- '.github/workflows' '.gitlab-ci.yml' 2>/dev/null && pass "CI runs scripts/check.sh" || gap "CI does not call scripts/check.sh, so green locally and green in CI can differ"
+  git grep -qE 'timeout-minutes' -- '.github/workflows' 2>/dev/null && pass "CI jobs have a time limit" \
+    || gap "CI jobs have no timeout-minutes: nothing stops the gate getting slower (the budget is 15 minutes)"
 else gap "no CI workflow"; fi
 [ -f docs/conventions.md ] && [ -f .agents/error-codes.tsv ] && [ -x scripts/error-codes.sh ] \
   && pass "conventions and the error-code registry" \

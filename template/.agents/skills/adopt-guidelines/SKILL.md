@@ -23,6 +23,12 @@ Edit the CONFIGURE block of `scripts/check.sh` until it prints `check: PASS`, wi
 product code. When a lint rule fails on hundreds of existing lines, do not fix them now and do not
 switch the rule off: make it a ratchet metric in step 3.
 
+Note how long it took. If the full gate needs more than 10 minutes, or CI more than 15, set
+`BUDGET_FULL` and the workflow's `timeout-minutes` to today's time rounded up, and tell the owner.
+From then on they only go down: the `sweep` skill brings them towards the budget. The first lever
+is parts: split `PARTS` by crate or package group, and list the shared paths in `ALL_PATHS`, so a
+pull request runs only what it can break. Require the `ci-required` check in branch protection.
+
 ## 3. Freeze today's violations
 
 Paste the audit's ratchet lines into `.agents/ratchet.tsv`, then:

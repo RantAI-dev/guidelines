@@ -24,6 +24,9 @@ What `scripts/check.sh` expects from `package.json`:
 - **Errors:** `api-error.ts` builds the one error body from the generated `error-codes.ts`. Add
   `@emit ts <path>` to `.agents/error-codes.tsv`, run `scripts/error-codes.sh --write`, and copy
   the helper beside the result. The generated file carries its own formatter-ignore comments.
+- **Speed:** the gate's budget is 2 minutes for `--changed` and 10 for everything. Turn on
+  `incremental` in `tsconfig.json`, keep tests beside the code so one directory can be run alone,
+  and keep browser tests out of the gate's default run.
 - **Dead code:** add `knip` to the `lint` script once the project has more than a few packages.
 - **Public surface:** one test per package that lists its exports, so removing one fails a test
   instead of surprising another team.

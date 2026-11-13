@@ -108,19 +108,71 @@ tests. The pre-commit hook runs its fast subset, a worker runs it before handoff
 again, and CI runs it again. If CI needs a step that is not in the script, the step goes in the
 script. *Evidence:* reported (T3 Code's `check:changed`, our Lakehouse verification block).
 
-**11. Fast while iterating, full before handoff.** `--changed` runs only the stacks a change
-touched. A commit that touches no Rust runs no cargo. *Evidence:* reported.
+**11. A change runs only the checks it can break.** The repository is split into parts: a stack to
+start with, then one crate or package group each. `scripts/check.sh --changed` runs the parts the
+changed files belong to, and a pull request's CI does the same, one job per part, side by side. A
+commit that touches no Rust runs no cargo; a change inside one crate does not test the other nine.
 
-**12. Turn a repeated mistake into a check.** In order of preference: a lint rule with a test, a
+The selection fails closed. A file every part depends on (the workspace manifest and lock file,
+`scripts/`, `.github/`, migrations, a core crate) runs every part, and so does a file no part claims.
+Only paths listed as affecting nothing, such as documentation, run no part. A pull request with the
+label `ci:all-parts`, every push to `main`, a manual run and a nightly run check everything, so a
+part that a wrong path rule left out fails within a day, not at release. Branch protection requires
+one check, `ci-required`, which passes only if every selected part passed.
+
+The split only pays if the code allows it. A file that every feature edits, such as one route table
+or one policy table for the whole service, belongs to every part, so every change that touches it
+runs everything. Let each module register its own routes and rules, and keep the files everything
+depends on few and small. *Evidence:* reported. In our Lakehouse repository on 13 November 2026, one
+full CI run was 42 jobs and spent longer waiting for a runner than running (415 job-minutes queued
+against 253 running). Scoping the acceptance gates by path would have run none of 25 gates for some
+of the last 27 merges, but most Rust pull requests still ran all 25, because they touched the
+shared route and policy files. Splitting those files is that repository's next step.
+
+**12. The gate has a time budget: 2 minutes while iterating, 10 for the full gate, 15 in CI.**
+The budget is for a run with warm caches. `scripts/check.sh --changed` is the first number,
+`scripts/check.sh` the second, each CI job the third. The parts run side by side, so the slowest
+part sets the run's time.
+
+A slow gate costs more with agents than it did with people, for three reasons. The gate runs at
+least three times for every change: the worker before handoff, the lead, then CI. Nobody reads the
+diff, so the gate is the only feedback there is. And an agent's shell has limits: in Claude Code as
+we run it, a foreground command gets 2 minutes by default and 10 at most. A check that fits inside
+those two numbers simply runs. A longer one has to go to the background, and an agent that cannot
+wait for a result is tempted to report without it.
+
+The budget shapes the code, and that is intended:
+
+- **Small units of build.** A change should rebuild little. In Rust that means several small crates
+  instead of one large one; in TypeScript, packages or project references.
+- **A dependency is paid for on every build.** Its build time is part of the case for adding it.
+- **Slow suites leave the gate, by the owner's decision.** End-to-end runs against real services,
+  coverage, security scans, benchmarks and model evaluations go in a scheduled workflow, and a
+  failure there opens a backlog row. What leaves the gate no longer protects the main branch, so
+  the list is short and a person approves it.
+- **Never faster by fewer tests.** `scripts/guard-diff.sh` already blocks a removed or skipped test.
+
+*Enforced by* `timeout-minutes: 15` on every part's CI job, which fails it. Locally `scripts/check.sh` prints
+`check: SLOW` and still passes, because a hard local limit would fail good changes on a busy
+machine; the `sweep` skill treats that line as its first job. Workers cannot raise either number:
+the gate script and the workflow are protected paths.
+*Evidence:* reported, survey and judgement. Martin Fowler: "the XP guideline of a ten minute build
+is perfectly within reason", and "Nothing sucks the blood of Continuous Integration more than a
+build that takes a long time"; he puts slower tests in a second stage. Our own CI, wall-clock from
+queued to finished over each repository's last 9 to 29 runs on 11 November 2026: a mean of 9.4
+minutes in one repository, 24.8 and 27.7 in the other two, with one run of 88 minutes. The three
+numbers themselves are our judgement, set by the shell limits above.
+
+**13. Turn a repeated mistake into a check.** In order of preference: a lint rule with a test, a
 test, a line in AGENTS.md "Traps". Custom lint rules used to be expensive. An agent now writes one
 in minutes; T3 Code has about 35.
 *Evidence:* reported (OpenAI replaced a weekly cleanup day with encoded rules plus background
 refactoring agents).
 
-**13. A suppression needs a reason on the same line.** `#[allow(..., reason = "…")]`,
+**14. A suppression needs a reason on the same line.** `#[allow(..., reason = "…")]`,
 `// biome-ignore <rule>: <why>`. A suppression without one fails the gate. *Evidence:* reported.
 
-**14. Some paths are protected.** The files that define "done" and "allowed" — contract tests,
+**15. Some paths are protected.** The files that define "done" and "allowed" — contract tests,
 lint and type-check configuration, CI, the gate scripts — are listed in `.agents/protected-paths`.
 A worker's diff that touches one is blocked by `scripts/guard-diff.sh`, and a person signs it off.
 *Evidence:* measured and bench. When a task and its tests conflict, models edit the tests: 50–76%
@@ -131,48 +183,48 @@ reported the conflict.
 
 ## Tests
 
-**15. Test what can break.** State machines, parsing, permissions, tenancy, money, migrations,
+**16. Test what can break.** State machines, parsing, permissions, tenancy, money, migrations,
 concurrency, and the logic a bug fix changed. Not what the type checker already guarantees, not
 copy text, not a mirror of mock calls. Add a row to an existing table before adding a new test.
 *Evidence:* reported (T3 Code runs a review bot that only ever asks for fewer tests).
 
-**16. A bug fix starts with a failing test.** *Evidence:* bench. With the rule in AGENTS.md, every
+**17. A bug fix starts with a failing test.** *Evidence:* bench. With the rule in AGENTS.md, every
 model that finished the bug task added the regression test.
 
-**17. Acceptance tests come from the planner, not the author.** An author's tests share the
+**18. Acceptance tests come from the planner, not the author.** An author's tests share the
 author's reading of the plan.
 *Evidence:* bench. On the Rust task one worker misread a single sentence about saturating
 arithmetic, wrote 19 passing tests that encoded the misreading, and reported "DEVIATIONS: none".
 Its own check was green. It failed 2 of 13 independent tests.
 
-**18. No sleeps, timeouts or retries in tests.** Wait on the event. A test that needs a timeout to
+**19. No sleeps, timeouts or retries in tests.** Wait on the event. A test that needs a timeout to
 pass is wrong. *Evidence:* reported (T3 Code enforces this with five lint rules).
 
-**19. "Green" is a quoted command and its count.** Anything not run is written `not verified`.
+**20. "Green" is a quoted command and its count.** Anything not run is written `not verified`.
 *Evidence:* reported (Anthropic: "'All tests pass' on its own tells you very little"; our Lakehouse
 rule 7).
 
 ## Comments and documents
 
-**20. Default to no comment.** Write one for a constraint, an external quirk or an invariant the
+**21. Default to no comment.** Write one for a constraint, an external quirk or an invariant the
 code cannot show. One line where possible, four at most. Never restate the code, narrate steps or
 record history. We do not require module header blocks and we do not use `AI-NOTE` tags: a reason
 is for every reader.
 *Evidence:* reported. T3 Code enforces a four-line cap by lint. In its 4,078 source files there are
 0 `AI-NOTE` markers, 0 `INVARIANT:` markers and 13 `@module` headers.
 
-**21. If a line looks wrong but is right, say why at the line, and pin it with a test.**
+**22. If a line looks wrong but is right, say why at the line, and pin it with a test.**
 *Evidence:* bench, small. During a tidy-up, a strange-looking special case with a one-line reason
 above it was kept by 6 of 6 models. Without the comment, 3 of 6 deleted it. Two of those said so in
 their handoff; the third also deleted an unused-looking public export and reported nothing. The
 comment helps, but only a test makes the removal fail. For a slice's public surface, one test that
 lists the exports is enough.
 
-**22. Documents hold decisions, not descriptions.** `docs/` records why something is the way it
+**23. Documents hold decisions, not descriptions.** `docs/` records why something is the way it
 is, constraints that span components, and traps the source cannot show. When a decision changes,
 rewrite the text; do not append. *Evidence:* reported (T3 Code, OpenAI).
 
-**23. Specs and decisions are committed. Step-by-step implementation plans are not, unless the
+**24. Specs and decisions are committed. Step-by-step implementation plans are not, unless the
 client needs an audit trail.** The merged PR is the record of how. *Evidence:* judgement. T3 Code
 commits no plans; our Lakehouse commits all of them. Both work. Choose per project and write the
 choice in AGENTS.md.

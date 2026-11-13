@@ -8,7 +8,9 @@ description: Run the regular clean-up that keeps a codebase healthy when nobody 
 When people stop reading code, nobody notices it rotting. This is the scheduled job that notices.
 It is a worker's job, not the lead's. One sweep is one small pull request in the auto lane.
 
-1. Run `scripts/audit.sh` and `scripts/ratchet.sh`. Pick **one** thing:
+1. Run `scripts/check.sh`, `scripts/audit.sh` and `scripts/ratchet.sh`. Pick **one** thing:
+   - if the gate printed `check: SLOW`, that comes first: find the slowest step and shorten it
+     (a cache, a smaller crate or package), without removing or skipping any test;
    - the ratchet metric that is cheapest to lower, in one directory;
    - one oversized file from `scripts/file-size.sh --list`: move one cohesive part into its own
      module, with no change in behaviour;

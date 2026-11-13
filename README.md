@@ -66,7 +66,7 @@ Lark base. The repository stays the master of everything. How:
 | File | What it does |
 |---|---|
 | `AGENTS.md`, `CLAUDE.md` | One instruction file every harness reads. Its `TODO(fill)` lines are filled from checked facts, by you or by your agent. |
-| `scripts/check.sh` | The one gate: `--staged` in the pre-commit hook, `--changed` while iterating, full in CI. |
+| `scripts/check.sh` | The one gate: `--staged` in the pre-commit hook, `--changed` while iterating. CI runs one job per part a pull request can affect, and everything on `main` and nightly. |
 | `scripts/guard-diff.sh` | What the lead runs on a worker's branch: scope, protected paths, removed or skipped tests, suppressions, secrets. |
 | `.agents/protected-paths` | The files that define "done" and "allowed". A worker cannot change them. |
 | `scripts/merge-lane.sh`, `.agents/risky-paths` | Decides which changes merge on green and which need a person's yes. |
@@ -99,7 +99,7 @@ Stack notes and config snippets for TypeScript, Rust and Python are in [`stacks/
    fewer of them.
 5. [docs/changing-code.md](docs/changing-code.md) — bringing an existing repository up to the
    guidelines, and moving code to another language.
-6. [docs/engineering.md](docs/engineering.md) — 23 rules for structure, the gate, tests and comments.
+6. [docs/engineering.md](docs/engineering.md) — 24 rules for structure, the gate, tests and comments.
 7. [docs/conventions.md](docs/conventions.md) — what is the same in every codebase: the error body,
    statuses, error codes, messages, field names, lists, logs, configuration, commit subjects. The
    rules themselves are [one page](template/docs/conventions.md) that every project gets.
@@ -131,6 +131,10 @@ Stack notes and config snippets for TypeScript, Rust and Python are in [`stacks/
 14. No file grows without limit. The gate fails a source file over 600 lines, or 1,000 for Rust.
 15. Every codebase answers the same way. One error body, one table of statuses, error codes from
     one registry that a script checks, and one page of conventions copied into every project.
+16. The gate has a time budget: 2 minutes while iterating, 10 for the full gate, 15 in CI. The
+    budget shapes the code: small crates and packages, few dependencies, slow suites at night.
+    A pull request runs only the parts its files can affect, side by side; a shared or unknown file
+    runs everything, and `main` and a nightly run always check everything.
 
 ## Check this repository
 

@@ -34,7 +34,7 @@ from `$G/template/AGENTS.md`; add the template's `.gitignore` lines.
 
 Work on a branch named `chore/guidelines`. Change no product code in this step.
 
-1. **`scripts/check.sh`.** In the CONFIGURE block keep only the stacks this repository has, and
+1. **`scripts/check.sh`.** In the CONFIGURE block keep only the parts (stacks) this repository has, and
    point each command at what it really uses (read `package.json` scripts, `Cargo.toml`,
    `pyproject.toml`). If the repository has no lint configuration, copy the snippet from
    `$G/stacks/<language>/`. Run it until it prints `check: PASS`. In an existing project, a rule
@@ -60,7 +60,8 @@ Work on a branch named `chore/guidelines`. Change no product code in this step.
 
 Then ask the owner, in one message, for the three decisions that are theirs: the risky-paths list,
 the code owner, and whether the project keeps a `BACKLOG.md` and a Lark copy (small and one-person
-projects skip both).
+projects skip both). Tell them to make `ci-required` the one required check on the main branch;
+that is a repository setting you cannot change from here.
 
 ## 4. Carry on with what was asked
 

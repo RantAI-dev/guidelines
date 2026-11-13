@@ -6,8 +6,8 @@ TODO(fill): two or three sentences. What this is, who calls it, what the moving 
 
 | What | Command |
 |---|---|
-| Everything, before any handoff | `scripts/check.sh` |
-| Only the stacks you touched, while iterating | `scripts/check.sh --changed` |
+| Everything, before any handoff | `scripts/check.sh` (budget: 10 minutes) |
+| Only the parts your change can affect, while iterating | `scripts/check.sh --changed` (budget: 2 minutes) |
 | One test | TODO(fill): for example `bun test path/to/file.test.ts -t "name"` |
 | Run it locally | TODO(fill) |
 
@@ -61,6 +61,8 @@ an endpoint, an error, a log line, a config variable or a table. The ones broken
    gate fails a source file over 600 lines (1,000 for Rust), and a file already over that may only
    shrink.
 8. **No new dependency** without the owner's approval. Say why you need it in the handoff.
+9. **Keep the gate fast.** If it prints `check: SLOW`, or your change makes it slower, say so in the
+   handoff. Speed comes from caching and from smaller crates or packages, never from removing tests.
 
 ## Traps
 

@@ -32,7 +32,30 @@ proj="$work/proj"; mkdir -p "$proj"; cp -r "$here/bench/fixture-ts/." "$proj/"
   "$here/scripts/new-project.sh" "$proj" >/dev/null &&
   git add -A && git commit -qm "chore: add the template" >/dev/null 2>&1 && git tag base
 ) || bad "template install"
-(cd "$proj" && scripts/check.sh | grep -q '^check: PASS') && ok "template: check.sh passes" || bad "template: check.sh"
+(cd "$proj" && scripts/check.sh) | tail -1 | grep -q '^check: PASS' && ok "template: check.sh passes" || bad "template: check.sh"
+out="$(cd "$proj" && CHECK_BUDGET_FULL=0 scripts/check.sh 2>&1)"
+printf '%s' "$out" | grep -q '^check: SLOW (full took' && printf '%s' "$out" | tail -1 | grep -q '^check: PASS' \
+  && ok "check.sh: over the time budget prints SLOW and still passes" || bad "check.sh: time budget notice"
+grep -q 'timeout-minutes: 15' "$proj/.github/workflows/ci.yml" && ok "template: the CI job is limited to 15 minutes" || bad "template: CI timeout"
+
+# 2a. CI runs only the parts a change can affect, and fails closed on a file no part claims.
+(
+  cd "$proj" && git checkout -qb scope-test && export CHECK_BASE=main
+  [ "$(scripts/check.sh --plan)" = '["repo","ts"]' ] || exit 11
+  echo x >> README.md; git add -A; git commit -qm "docs: touch" --no-verify
+  [ "$(scripts/check.sh --plan --changed)" = '["repo"]' ] || exit 12
+  echo '// x' >> src/features/pricing/index.ts; [ "$(scripts/check.sh --plan --changed)" = '["repo","ts"]' ] || exit 13
+  git checkout -q -- src/features/pricing/index.ts; echo x > notes.weird
+  out="$(scripts/check.sh --plan --changed 2>&1)"
+  printf '%s' "$out" | grep -q 'no part claims notes.weird' && printf '%s' "$out" | tail -1 | grep -q '"ts"' || exit 14
+  rm notes.weird; touch scripts/x.sh; [ "$(scripts/check.sh --plan --changed 2>/dev/null)" = '["repo","ts"]' ] || exit 15
+  rm scripts/x.sh
+  scripts/check.sh --part nope >/dev/null 2>&1; [ $? -eq 2 ] || exit 16
+  out="$(scripts/check.sh --part repo)"; printf '%s' "$out" | grep -q '^check: size ok' && ! printf '%s' "$out" | grep -q '^check: ts' || exit 17
+  git checkout -q main && git branch -qD scope-test
+) && ok "check.sh: scoped plan, docs run nothing, unknown and shared files run every part" || bad "check.sh: part selection (exit $?)"
+grep -q 'ci-required' "$proj/.github/workflows/ci.yml" && grep -q 'fromJSON(needs.plan.outputs.parts)' "$proj/.github/workflows/ci.yml" \
+  && ok "template: CI has one job per part and one required check" || bad "template: CI part matrix"
 [ "$(readlink "$proj/.claude/skills")" = "../.agents/skills" ] && ok "template: .claude/skills symlink" || bad "template: skills symlink"
 
 # 3. The pre-commit hook rejects a badly formatted file.
@@ -137,7 +160,7 @@ msg "fix(billing): round tax per line" && msg "feat!: drop the v1 routes" && msg
   printf 'ts-any\tgit grep -nE "\\bas any\\b" -- "src/*.ts" | wc -l\n' >> .agents/ratchet.tsv &&
   scripts/ratchet.sh --update >/dev/null && git add -A && git commit -qm ratchet --no-verify
 ) || bad "ratchet setup"
-(cd "$proj" && scripts/check.sh | grep -q '^check: ratchet ok') && ok "ratchet: baseline holds inside check.sh" || bad "ratchet: check.sh did not run it"
+(cd "$proj" && scripts/check.sh) | grep '^check: ratchet ok' >/dev/null && ok "ratchet: baseline holds inside check.sh" || bad "ratchet: check.sh did not run it"
 (cd "$proj" && printf '\nexport const z = 1 as any;\n' >> src/features/orders/order-store.ts && git add -A && ! scripts/ratchet.sh >/dev/null 2>&1) \
   && ok "ratchet: blocks a rise" || bad "ratchet let a count rise"
 out="$(cd "$proj" && scripts/ratchet.sh --update 2>&1 || true)"

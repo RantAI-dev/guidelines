@@ -71,6 +71,20 @@ Fetched on 11 November 2026. Every quote in conventions.md was checked against t
 | Conventional Commits 1.0.0 (`conventionalcommits.org`) | living | Subject structure; `feat` and `fix` are defined, other types allowed |
 | Our own survey of four services with an HTTP API, read locally | 11 Nov 2026 | Everything tagged "survey" in conventions.md. Counts were made by a search agent and spot-checked, not recounted by hand. |
 
+## Added for the gate's time budget
+
+| Source | Date | Used for |
+|---|---|---|
+| Martin Fowler, "Continuous Integration" (`martinfowler.com/articles/continuousIntegration.html`) | rev. 18 Jan 2024 | The ten-minute build; a fast commit build with slower tests in a second stage. Quotes checked against the page. |
+| The Bash tool description shown to an agent in Claude Code, as run through T3 Code | read 11 Nov 2026 | A foreground command's timeout: 120,000 ms by default, 600,000 ms at most. Not checked against the public documentation, and other harnesses may differ. |
+| GitHub Actions run history of three of our repositories (`gh run list`, the last 40 runs each, successes and failures) | 11 Nov 2026 | Mean and longest CI time. Wall-clock from created to updated, so queue time is included. |
+
+## Added for running only the parts a change can affect
+
+| Source | Used for |
+|---|---|
+| Our Lakehouse repository: the merged pull requests that scope CI by change (OPS-24) and run only the acceptance gates a pull request's paths can affect (OPS-25), 13 November 2026 | Rule 11: fail closed on shared and unknown paths, one required check, a nightly full run, and the measurements (42 jobs per run, 415 job-minutes queued against 253 running; a dry run on 27 merges in which most Rust pull requests still selected every gate because of shared route and policy files). Read from the pull request descriptions, not re-measured. |
+
 ## Studies
 
 | Source | Date | Finding used |

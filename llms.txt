@@ -18,7 +18,7 @@
 - [docs/no-read-workflow.md](https://raw.githubusercontent.com/RantAI-dev/guidelines/main/docs/no-read-workflow.md): shipping code nobody reads line by line.
 - [docs/changing-code.md](https://raw.githubusercontent.com/RantAI-dev/guidelines/main/docs/changing-code.md): refactoring an existing repository; porting to another language.
 - [docs/tracker.md](https://raw.githubusercontent.com/RantAI-dev/guidelines/main/docs/tracker.md): the backlog in the repository, and the optional Lark copy.
-- [docs/engineering.md](https://raw.githubusercontent.com/RantAI-dev/guidelines/main/docs/engineering.md): 23 rules for code, tests and comments.
+- [docs/engineering.md](https://raw.githubusercontent.com/RantAI-dev/guidelines/main/docs/engineering.md): 24 rules for code, tests and comments.
 - [template/docs/conventions.md](https://raw.githubusercontent.com/RantAI-dev/guidelines/main/template/docs/conventions.md): the rules that are the same in every codebase: error body, statuses, error codes, messages, field names, lists, logs, configuration, commits. Every project has a copy at docs/conventions.md.
 - [docs/conventions.md](https://raw.githubusercontent.com/RantAI-dev/guidelines/main/docs/conventions.md): the reason for each of those rules.
 - [docs/agent-context.md](https://raw.githubusercontent.com/RantAI-dev/guidelines/main/docs/agent-context.md): what each agent harness reads.
